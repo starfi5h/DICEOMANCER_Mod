@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.34301.259
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestMod", "TestMod\TestMod.csproj", "{EF05BBC3-044D-46A9-BA0B-09E8F4BD0E23}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeedChanger", "SeedChanger\SeedChanger.csproj", "{C96C025E-9766-4D28-B659-88ED50C6CB88}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandboxTool", "SandboxTool\SandboxTool.csproj", "{301A4984-283B-4D7A-AA73-0A0387AE972B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{EF05BBC3-044D-46A9-BA0B-09E8F4BD0E23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EF05BBC3-044D-46A9-BA0B-09E8F4BD0E23}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EF05BBC3-044D-46A9-BA0B-09E8F4BD0E23}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EF05BBC3-044D-46A9-BA0B-09E8F4BD0E23}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C96C025E-9766-4D28-B659-88ED50C6CB88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C96C025E-9766-4D28-B659-88ED50C6CB88}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C96C025E-9766-4D28-B659-88ED50C6CB88}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C96C025E-9766-4D28-B659-88ED50C6CB88}.Release|Any CPU.Build.0 = Release|Any CPU
+		{301A4984-283B-4D7A-AA73-0A0387AE972B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{301A4984-283B-4D7A-AA73-0A0387AE972B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{301A4984-283B-4D7A-AA73-0A0387AE972B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{301A4984-283B-4D7A-AA73-0A0387AE972B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
