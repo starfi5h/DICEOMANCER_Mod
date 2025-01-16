@@ -74,11 +74,11 @@ namespace SandboxTool
             string parameter = "";
             string[] array = code.Split(':', (char)StringSplitOptions.None);            
             if (array.Length >= 2) parameter = array[1];
-            string command = array[0];
+            string command = array[0].Trim();
 
             if (!methodDict.TryGetValue(command, out var methodInfo))
             {
-                return "Error method not found: " + command + "\n可用指令:\n" + CommandListText();
+                return "找不到指令: " + command + "\n可用指令:\n" + CommandListText();
             }
             try
             {
@@ -86,9 +86,9 @@ namespace SandboxTool
             }
             catch (Exception ex)
             {
-                return "Error invoking method " + command + ": " + ex.Message;
+                return "指令报错 " + command + ": " + ex.Message;
             }
-            return "Success!";
+            return "成功! " + command + ":" + parameter;
         }
 
         static string CommandListText()

@@ -12,7 +12,7 @@ namespace SandboxTool
     {
         public const string GUID = "starfi5h.plugin.SandboxTool";
         public const string NAME = "SandboxTool";
-        public const string VERSION = "1.0.0";
+        public const string VERSION = "1.0.1";
 
         public static ManualLogSource Log;
         private static Harmony harmony;
@@ -21,7 +21,7 @@ namespace SandboxTool
         private bool showWindow = true;
         private string windowName = "沙盒工具";
         private const int windowId = 12800;
-        private Rect windowRect = new Rect(100, 150, 300, 300);
+        private Rect windowRect = new Rect(100, 150, 300, 330);
         private int selectedTab = 0;
         private readonly string[] tabNames = { "戰鬥", "地图", "卡池", "控制台" };
         private bool isResizing;
@@ -43,17 +43,19 @@ namespace SandboxTool
             //Debug.PrintCollections();
             harmony.PatchAll(typeof(Debug));
 #endif
-            Log.LogDebug("SandboxTool Load");
+            //DontDestroyOnLoad(this); // Fix plugin gets destory in BepInEx 5.4.23
+            Log.LogInfo("SandboxTool Load. Version:" + VERSION);
         }
 
-#if DEBUG
+
         public void OnDestroy()
         {
-            Log.LogDebug("OnDestroy");
+            Log.LogInfo("OnDestroy");
+#if DEBUG
             harmony.UnpatchSelf();
             harmony = null;
-        }
 #endif
+        }
 
         public void Update()
         {
