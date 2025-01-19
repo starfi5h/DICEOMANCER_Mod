@@ -1,12 +1,16 @@
-﻿using Card;
+﻿using Ability;
+using Card;
 using Combat;
 using Command;
+using GameData;
 using HarmonyLib;
 using Relic;
 using Relic.RelicEffects;
 using RollNumber;
-using System;
+using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
+using UnityEngine.Localization;
 using World;
 
 namespace SandboxTool
@@ -20,9 +24,10 @@ namespace SandboxTool
         static string diceNumberInput = "20";
         static bool forceEnableInjure;
         static bool forceDisableInjure;
-        static readonly string[] colorTexts = new string[] { "红", "绿", "蓝", "紫", "虚", "黑" };
         static string damageInput = "10";
-
+        static string abilityInput = "Power";
+        static string abilityArgInput = "3";
+        static string messageText = "";
         static bool accessFlag;
 
         public static void DrawTabContent()
@@ -32,23 +37,25 @@ namespace SandboxTool
 
             // timeScale control
             GUILayout.BeginHorizontal(GUI.skin.box);
-            GUILayout.Label("时间流逝速率");
-            if (GUILayout.Button("<<") && Time.timeScale >= 2) Time.timeScale = (int)(Time.timeScale / 2) > 0 ? (int)(Time.timeScale / 2) : 1;
-            GUILayout.Label(Time.timeScale.ToString("F1") + "x");
-            if (GUILayout.Button(">>")) Time.timeScale = (int)(Time.timeScale * 2);
+            GUILayout.Label("时间倍率");
+            if (GUILayout.Button("<<", GUILayout.Width(30))) Time.timeScale = (int)(Time.timeScale / 2) > 0 ? (int)(Time.timeScale / 2) : 1;
+            if (GUILayout.Button("-", GUILayout.Width(30))) Time.timeScale = (int)(Time.timeScale - 1) > 0 ? (int)(Time.timeScale - 1) : 1;
+            GUILayout.Label(Time.timeScale.ToString("F1"));
+            if (GUILayout.Button("+", GUILayout.Width(30))) Time.timeScale = (int)(Time.timeScale + 1) <= 32 ? (int)(Time.timeScale + 1) : 32;
+            if (GUILayout.Button(">>", GUILayout.Width(30))) Time.timeScale = (int)(Time.timeScale * 2) <= 32 ? (int)(Time.timeScale * 2) : 32;
             GUILayout.EndHorizontal();
 
             // One Dice
             GUILayout.BeginVertical(GUI.skin.box);
             GUILayout.BeginHorizontal();
-            overwriteOneDice = GUILayout.Toggle(overwriteOneDice, "覆写至尊骰数值");
+            overwriteOneDice = GUILayout.Toggle(overwriteOneDice, "覆写至尊骰的骰出数值");
             diceNumberInput = GUILayout.TextField(diceNumberInput);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("+10充能")) AddOneDice(10);
-            if (GUILayout.Button("升級至尊骰")) UpdargeOneDice();
-            if (GUILayout.Button("迷你至尊骰")) DowngradeOneDiceToD4();
+            if (GUILayout.Button("升級骰子")) UpdargeOneDice();
+            if (GUILayout.Button("迷你骰子")) DowngradeOneDiceToD4();
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
 
@@ -75,14 +82,15 @@ namespace SandboxTool
             // Add mana
             GUILayout.BeginHorizontal();
             GUILayout.Label("+能量:");
-            for (int i = 0; i < 6; i++)
-                if (GUILayout.Button(colorTexts[i])) AddMana((ColorE)i);
+            for (int i = 0; i < Strings.ColorCount; i++)
+                if (GUILayout.Button(Strings.ColorTexts[i])) AddMana((ColorE)i);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("容量-1")) AdjustManaLimit(-1); 
             if (GUILayout.Button("容量+1")) AdjustManaLimit(1);
             if (GUILayout.Button("抽1张牌")) DrawOneCard();
+            if (GUILayout.Button("棄1")) DiscardOneCard();
             GUILayout.EndHorizontal();
 
             // Deal damage
@@ -94,6 +102,28 @@ namespace SandboxTool
 
             GUILayout.EndVertical();
 
+            // Ability
+            GUILayout.BeginVertical(GUI.skin.box);
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("能力", GUILayout.Width(30));
+            abilityInput = GUILayout.TextField(abilityInput);
+            GUILayout.Label("增减层数", GUILayout.Width(60));
+            abilityArgInput = GUILayout.TextField(abilityArgInput);
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("己方")) messageText = SetAbiltiyAlly(abilityInput, abilityArgInput);
+            if (GUILayout.Button("敌方")) messageText = SetAbiltiyEnemies(abilityInput, abilityArgInput);
+            if (GUILayout.Button("列出能力"))
+            {
+                messageText = ShowCommonAbiltities(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl));
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.EndVertical();
+
+            GUILayout.TextArea(messageText);
 
             GUILayout.EndScrollView();
         }
@@ -173,6 +203,12 @@ namespace SandboxTool
             new SubCommandDrawOneCard(null, false, null, true);
         }
 
+        static void DiscardOneCard()
+        {            
+            List<CardBase> cardHand = CardManager.Instance.cardHand;
+            if (cardHand.Count >= 1) new SubCommandDiscardCard(cardHand[0], false);
+        }
+
         static void DamageEnemy(int damageAmount)
         {
             if (EnemyManager.Instance.GetAllEnemy().Count > 0)
@@ -184,6 +220,74 @@ namespace SandboxTool
         static void HealPlayer(int healAmount)
         {
             new SubCommandHeal(CharacterPlayer.Instance, healAmount);
+        }
+
+        static string SetAbiltiyAlly(string abiltiyName, string abilityNumberString)
+        {
+            if (!int.TryParse(abilityNumberString, out int level)) return $"错误: {abilityNumberString} 非整数!";
+
+            foreach (AbilitySo abilitySo in DataManager.Instance.GetAbilityDataManager().GetAllAbilitySos())
+            {
+                if (abilitySo.abilityInfo.abilityName == abiltiyName)
+                {
+                    //new SubCommandApplyAbility(CharacterPlayer.Instance, abilitySo.abilityInfo, number, true, true, null);
+                    CharacterPlayer.Instance.GainAbility(abilitySo.abilityInfo, level);
+                    return $"成功: {abiltiyName} {level}";
+                }
+            }
+            return $"失败: 找不到 {abiltiyName}";            
+        }
+
+        static string SetAbiltiyEnemies(string abiltiyName, string abilityNumberString)
+        {
+            if (!int.TryParse(abilityNumberString, out int level)) return $"错误: {abilityNumberString} 非整数!";
+
+            foreach (AbilitySo abilitySo in DataManager.Instance.GetAbilityDataManager().GetAllAbilitySos())
+            {
+                if (abilitySo.abilityInfo.abilityName == abiltiyName)
+                {
+                    foreach (var character in EnemyManager.Instance.GetAllEnemy())
+                    {
+                        //new SubCommandApplyAbility(character, abilitySo.abilityInfo, number, true, true, null);
+                        character.GainAbility(abilitySo.abilityInfo, level);
+                    }
+                    return $"成功: {abiltiyName} {level}";
+                }
+            }
+            return $"失败: 找不到 {abiltiyName}";
+        }
+
+        static string ShowCommonAbiltities(bool showAll)
+        {
+            var abilityManager = DataManager.Instance.GetAbilityDataManager();
+            if (abilityManager == null) return "错误: 尚未载入";
+
+            var lists = new List<string>[5];
+            for (int i = 0; i < 5; i++) lists[i] = new List<string>();            
+
+            foreach (AbilitySo abilitySo in abilityManager.GetAllAbilitySos())
+            {
+                if (abilitySo.abilityOwnerShip != AbilityOwnerShip.All && !showAll) continue;
+
+                lists[(int)abilitySo.abilityInfo.abilityType].Add(abilitySo.abilityInfo.abilityName);
+            }
+
+            var sb = new StringBuilder();
+            if(showAll) sb.AppendLine("[Ctrl]显示所有能力");
+            else sb.AppendLine("敌我通用能力");
+            for (int i = 0; i < 5; i++)
+            {
+                if (lists[i].Count == 0) continue;
+                sb.AppendLine($"==== {(AbilityType)i}:{lists[i].Count} ====");
+                foreach (var abiltiyName in lists[i])
+                {
+                    sb.Append(new LocalizedString("Ability", abiltiyName).GetLocalizedString());
+                    sb.Append(" ");
+                    sb.AppendLine(abiltiyName);
+                }
+                sb.AppendLine();
+            }
+            return sb.ToString();
         }
     }
 }

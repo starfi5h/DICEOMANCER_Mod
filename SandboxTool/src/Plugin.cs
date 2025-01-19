@@ -12,7 +12,7 @@ namespace SandboxTool
     {
         public const string GUID = "starfi5h.plugin.SandboxTool";
         public const string NAME = "SandboxTool";
-        public const string VERSION = "1.0.1";
+        public const string VERSION = "1.0.2";
 
         public static ManualLogSource Log;
         private static Harmony harmony;
@@ -23,7 +23,6 @@ namespace SandboxTool
         private const int windowId = 12800;
         private Rect windowRect = new Rect(100, 150, 300, 330);
         private int selectedTab = 0;
-        private readonly string[] tabNames = { "戰鬥", "地图", "卡池", "控制台" };
         private bool isResizing;
 
         public void Awake()
@@ -44,6 +43,7 @@ namespace SandboxTool
             harmony.PatchAll(typeof(Debug));
 #endif
             //DontDestroyOnLoad(this); // Fix plugin gets destory in BepInEx 5.4.23
+            //windowName = Strings.Get(windowName);
             Log.LogInfo("SandboxTool Load. Version:" + VERSION);
         }
 
@@ -91,10 +91,10 @@ namespace SandboxTool
 
             // Draw tab buttons
             GUILayout.BeginHorizontal();
-            for (int i = 0; i < tabNames.Length; i++)
+            for (int i = 0; i < Strings.TabNames.Length; i++)
             {
                 GUI.backgroundColor = selectedTab == i ? Color.gray : Color.white;
-                if (GUILayout.Button(tabNames[i], GUILayout.Height(25)))
+                if (GUILayout.Button(Strings.TabNames[i], GUILayout.Height(25)))
                 {
                     selectedTab = i;
                 }
@@ -107,18 +107,11 @@ namespace SandboxTool
             // Draw tab content
             switch (selectedTab)
             {
-                case 0:
-                    CombatManager.DrawTabContent();
-                    break;
-                case 1:
-                    MapManager.DrawTabContent();
-                    break;
-                case 2:
-                    PoolManager.DrawTabContent();
-                    break;
-                case 3:
-                    ConsoleManager.DrawTabContent();
-                    break;
+                case 0: CombatManager.DrawTabContent(); break;
+                case 1: MapManager.DrawTabContent(); break;
+                case 2: DeckManager.DrawTabContent(); break;
+                case 3: PoolManager.DrawTabContent(); break;
+                case 4: ConsoleManager.DrawTabContent(); break;
             }
 
             // Make the window draggable            

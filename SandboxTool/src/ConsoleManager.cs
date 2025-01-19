@@ -9,7 +9,6 @@ namespace SandboxTool
 {
     public static class ConsoleManager
     {
-        static DebugRedeemCode debugRedeemCode;
         static readonly Dictionary<string, MethodInfo> methodDict = new Dictionary<string, MethodInfo>();
 
         static Vector2 scrollPosition;
@@ -40,31 +39,12 @@ namespace SandboxTool
 
         public static void Init()
         {
-            debugRedeemCode = new DebugRedeemCode();
-
-            // Init method blacklist
-            var skipNames = new HashSet<string>
-            {
-                "OnClickSubmitButton",
-                "ClearInputField",
-                "Update",
-                "SubmitCode",
-                "CheckCode",
-                "EnableDebugCheat"
-            };
-            foreach (var methodInfo in typeof(MonoBehaviour).GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-            {
-                skipNames.Add(methodInfo.Name);
-            }
-
-            var methodInfos = typeof(DebugRedeemCode).GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            var methodInfos = typeof(ConsoleCommands).GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
             foreach (var methodInfo in methodInfos)
             {
                 string name = methodInfo.Name;
-                if (skipNames.Contains(name)) continue;
                 if (methodInfo.GetParameters().Length < 1) continue;
                 methodDict.Add(name, methodInfo);
-                //Plugin.Log.LogDebug($"{name}:{methodInfo.GetParameters()[0].Name}");
             }
             messageText = "可用指令:\n" + CommandListText();
         }
@@ -73,7 +53,7 @@ namespace SandboxTool
         {
             string parameter = "";
             string[] array = code.Split(':', (char)StringSplitOptions.None);            
-            if (array.Length >= 2) parameter = array[1];
+            if (array.Length >= 2) parameter = array[1].Trim();
             string command = array[0].Trim();
 
             if (!methodDict.TryGetValue(command, out var methodInfo))
@@ -82,7 +62,8 @@ namespace SandboxTool
             }
             try
             {
-                methodInfo.Invoke(debugRedeemCode, new object[] { parameter });
+                string result = (string)methodInfo.Invoke(null, new object[] { parameter });
+                Plugin.Log.LogDebug(result);
             }
             catch (Exception ex)
             {
@@ -97,10 +78,8 @@ namespace SandboxTool
             foreach (var methodInfo in methodDict.Values)
             {
                 var parameters = methodInfo.GetParameters();
-                if (parameters[0].Name == "empty")
-                    text += $"{methodInfo.Name}\n";
-                else
-                    text += $"{methodInfo.Name}:[{parameters[0].Name}]\n";
+                if (parameters[0].Name == "_") text += $"{methodInfo.Name}\n";
+                else text += $"{methodInfo.Name}:[{parameters[0].Name}]\n";
             }
             return text;
         }

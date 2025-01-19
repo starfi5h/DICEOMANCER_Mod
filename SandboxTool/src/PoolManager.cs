@@ -3,30 +3,27 @@ using Combat;
 using GameData;
 using HarmonyLib;
 using Relic;
-using Relic.RelicEffects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Localization;
 
 namespace SandboxTool
 {
     public static class PoolManager
     {
         static Vector2 scrollPosition;
-        private const int ColorCount = 6;
-        static readonly string[] colorTexts = new string[] { "红", "绿", "蓝", "紫", "虚", "黑" };
-        static readonly string[] rarityTexts = new string[] { "普通", "稀有", "传说" };
 
-        static readonly bool[] colorCardEnables = new bool[ColorCount];
+        static readonly bool[] colorCardEnables = new bool[Strings.ColorCount];
         static bool includeStandardCardPool = true;
         static bool includeSpecialCardPool = false;
         static bool includeOtherCardPool = false;
         static string importedCardText = "";
         static int statusCardPool = 0; // 0:vanilla >0:import <0:filtered
 
-        static readonly bool[] colorRelicEnables = new bool[ColorCount];
+        static readonly bool[] colorRelicEnables = new bool[Strings.ColorCount];
         static string importedRelicText = "";
         static int statusRelicPool = 0; // 0:vanilla >0:import
 
@@ -126,9 +123,9 @@ namespace SandboxTool
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            for (int i = 0; i < ColorCount; i++)
+            for (int i = 0; i < Strings.ColorCount; i++)
             {
-                colorCardEnables[i] = GUILayout.Toggle(colorCardEnables[i], colorTexts[i]);
+                colorCardEnables[i] = GUILayout.Toggle(colorCardEnables[i], Strings.ColorTexts[i]);
             }
             GUILayout.EndHorizontal();
 
@@ -199,7 +196,7 @@ namespace SandboxTool
         {
             if (CampaignManager.Instance?.campaignCardPools == null) return "错误: 不在游戏中";
             var colorList = new List<ColorE>();
-            for (int i = 0; i < ColorCount; i++)
+            for (int i = 0; i < Strings.ColorCount; i++)
             {
                 if (colorCardEnables[i]) colorList.Add((ColorE)i);
             }
@@ -253,7 +250,7 @@ namespace SandboxTool
                 if (collection.cardCollectionType != CardCollectionType.Special) continue;
                 if (collection.isInRandomPool != isInRandomPool) continue;
 
-                Plugin.Log.LogDebug(collection.cardCollectionName + ":" + collection.isInRandomPool);
+                //Plugin.Log.LogDebug(collection.cardCollectionName + ":" + collection.isInRandomPool);
                 foreach (var cardSo in collection.GetAllCards())
                 {
                     list.Add(cardSo);
@@ -335,7 +332,6 @@ namespace SandboxTool
 
             var list = CampaignManager.Instance.campaignCardPools;
             var sb = new StringBuilder();
-            var cardBase = new CardBase();
             sb.AppendLine($"牌池卡牌数目: {list.Count}");
 
             var rarityCounts = new int[3];
@@ -346,23 +342,22 @@ namespace SandboxTool
             for (int rarity = 0; rarity < 3; rarity++)
             {
                 sb.AppendLine();
-                sb.AppendLine($"==== {rarityTexts[rarity]}:{rarityCounts[rarity]} ====");
+                sb.AppendLine($"==== {Strings.RarityTexts[rarity]}:{rarityCounts[rarity]} ====");
                 foreach (var cardso in list)
                 {
                     if ((int)cardso.cardInfo.rarity != rarity) continue;
-                    cardBase._cardName = cardso.cardInfo.cardName;
-                    sb.Append(cardBase.GetOwnerLocalizedName());
+                    // CardBase.GetOwnerLocalizedName()
+                    sb.Append(new LocalizedString("CardName", cardso.cardInfo.cardName).GetLocalizedString());
                     sb.Append(" [");
                     for (int i = 0; i < cardso.cardInfo.cardColorEs.Length; i++)
                     {
-                        sb.Append(colorTexts[(int)cardso.cardInfo.cardColorEs[i]]);
+                        sb.Append(Strings.ColorTexts[(int)cardso.cardInfo.cardColorEs[i]]);
                     }
                     sb.Append("] ");
                     sb.Append(cardso.cardInfo.cardName);
                     sb.AppendLine();
                 }
             }
-            GameObject.Destroy(cardBase);
             return sb.ToString();
         }
 
@@ -373,7 +368,6 @@ namespace SandboxTool
 
             if (relicList == null) relicList = relicDataManager._campaignRelicPool;
             var sb = new StringBuilder();
-            var relicBase = new RelicBase();
             sb.AppendLine($"宝物池数目: {relicList.Count}");
 
             var rarityCounts = new int[3];
@@ -384,16 +378,17 @@ namespace SandboxTool
             for (int rarity = 0; rarity <= 2; rarity++)
             {
                 sb.AppendLine();
-                sb.AppendLine($"==== {rarityTexts[rarity]}:{rarityCounts[rarity]} ====");
+                sb.AppendLine($"==== {Strings.RarityTexts[rarity]}:{rarityCounts[rarity]} ====");
                 foreach (var relicSo in relicList)
                 {
                     if ((int)relicSo.relicInfo.relicRarity != rarity) continue;
-                    relicBase.RelicName = relicSo.relicInfo.relicName;
-                    sb.Append(relicBase.GetOwnerLocalizedName());
+
+                    // RelicBase.GetOwnerLocalizedName()
+                    sb.Append(new LocalizedString("Relic", relicSo.relicInfo.relicName).GetLocalizedString());
                     sb.Append(" [");
                     for (int i = 0; i < relicSo.relicInfo.relicColors.Length; i++)
                     {
-                        sb.Append(colorTexts[(int)relicSo.relicInfo.relicColors[i]]);
+                        sb.Append(Strings.ColorTexts[(int)relicSo.relicInfo.relicColors[i]]);
                     }
                     sb.Append("] ");
                     sb.Append(relicSo.relicInfo.relicName);

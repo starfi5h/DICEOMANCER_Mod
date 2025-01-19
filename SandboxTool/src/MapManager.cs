@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Localization;
 using Utilities;
 using World;
 
@@ -118,6 +119,8 @@ namespace SandboxTool
         {
             storyName = storyName.Trim();
             if (string.IsNullOrWhiteSpace(storyName)) return "字串为空";
+            if (storyName == "Parade") return "此事件暂时无法透过命令叫出";
+
             foreach (StorySo storySo in Resources.LoadAll<StorySo>("ScriptableObjects/Stories"))
             {
                 if (storySo.storyTitle == storyName)
@@ -157,7 +160,16 @@ namespace SandboxTool
             var sb = new StringBuilder();
             sb.Insert(0, "可选事件数目: " + list.Count + "\n");
             foreach (var storyTitle in list)
+            {
+                // StoryManager.SetTitle
+                var localizedString = new LocalizedString("Story", storyTitle);
+                if (!localizedString.IsEmpty)
+                {
+                    sb.Append(localizedString.GetLocalizedString());
+                    sb.Append(" ");
+                }
                 sb.AppendLine(storyTitle);
+            }
 
             /*
             if (WorldManager.Instance?.ChapterSoPool == null) return "当前不在游戏中!";
@@ -191,17 +203,24 @@ namespace SandboxTool
 
         static string GetEnemyList()
         {
-            var list = new List<string>();            
-            foreach (EncounterEnemySO encounterEnemySO in Resources.LoadAll<EncounterEnemySO>("ScriptableObjects/EnemyEncounter"))
-            {
-                list.Add(encounterEnemySO.encounterName);
-            }
-            list.Sort();
+            var soList = new List<EncounterEnemySO>(Resources.LoadAll<EncounterEnemySO>("ScriptableObjects/EnemyEncounter"));
+            soList.Sort((x, y) => (string.Compare(x.encounterName, y.encounterName)));
 
+            int count = 0;
             var sb = new StringBuilder();
-            sb.Insert(0, "可选敌人数目: " + list.Count + "\n");
-            foreach (var name in list)
-                sb.AppendLine(name);
+            foreach (var encounterEnemySO in soList)
+            {
+                var enemyTypeNames = encounterEnemySO.GetEnemyTypeNames();
+                if (enemyTypeNames.Length == 0) continue;
+                foreach (var enmeyName in enemyTypeNames)
+                {
+                    sb.Append(new LocalizedString("EnemyInfo", enmeyName).GetLocalizedString());
+                    sb.Append(" ");
+                }
+                sb.AppendLine(encounterEnemySO.encounterName);
+                count++;
+            }
+            sb.Insert(0, "可选敌人数目: " + count + "\n");
             return sb.ToString();
         }
     }
