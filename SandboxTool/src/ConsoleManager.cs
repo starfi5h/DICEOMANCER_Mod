@@ -39,7 +39,7 @@ namespace SandboxTool
 
         public static void Init()
         {
-            var methodInfos = typeof(ConsoleCommands).GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            var methodInfos = typeof(ConsoleCommands).GetMethods(BindingFlags.Static | BindingFlags.Public);
             foreach (var methodInfo in methodInfos)
             {
                 string name = methodInfo.Name;
@@ -60,16 +60,21 @@ namespace SandboxTool
             {
                 return "找不到指令: " + command + "\n可用指令:\n" + CommandListText();
             }
+            Plugin.Log.LogInfo("Execute command " + command + ":" + parameter);
+            bool result;
             try
             {
-                string result = (string)methodInfo.Invoke(null, new object[] { parameter });
-                Plugin.Log.LogDebug(result);
+                result = (bool)methodInfo.Invoke(null, new object[] { parameter });
             }
             catch (Exception ex)
             {
+                Plugin.Log.LogError(ex);
                 return "指令报错 " + command + ": " + ex.Message;
             }
-            return "成功! " + command + ":" + parameter;
+            Plugin.Log.LogInfo("Execute result: " + result);
+            var output = (result ? "成功! " : "失敗! ") + command + ":" + parameter;
+            if (command == "Search") output += "\n" + ConsoleCommands.ResultString;
+            return output;
         }
 
         static string CommandListText()
