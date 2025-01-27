@@ -1,6 +1,6 @@
 # 沙盒工具 SandboxTool
 
-这个Mod引入了调试和扩展功能，让你能更好地控制游戏中的各种机制。  
+此控制台Mod引入了调试和扩展功能，让你能更好地控制游戏中的各种机制。  
 默认热键F1开启mod视窗，在视窗右下角可以拖曳调整大小。  
 感谢杀戮尖塔Loadout Mod的启发。  
 
@@ -121,6 +121,7 @@
 ## 指令
 ![img](https://raw.githubusercontent.com/starfi5h/DICEOMANCER_Mod/dev/SandboxTool/img/sandboxTool_console.png)  
 格式为[命令]:[参数]。举例：
+- `Search:骰` 搜索名称包含'骰'的卡牌及宝物。列出稀有度,名称,英文辨识名称
 - `GainCard:BalanceTweak` 在牌组中加入一张`平衡调整`
 - `RemoveCard:Dice` 从牌组中移除卡牌`至尊骰`
 - `RemoveAllCards` 移除玩家所有的牌
@@ -128,6 +129,7 @@
 - `RemoveRelic:TheOneDice` 移除宝物`至尊骰`
 - `GainAllRelic` 得到所有宝物
 - `RemoveAllRelics` 移除所有宝物
+- `SetMaxRelicSlot:5` 将主动宝物槽位扩增至5
 - `GainAllAbilityByAbilityType:Util` 战斗中获得所有Util能力
 - `PlayAllCardAnimation` 展示所有动画
   
@@ -152,6 +154,7 @@
 
 ## 更新日志 Changelog
 
+- v1.0.3 - 允许加入重复宝物。新增命令:搜索Search,增加主动槽位SetMaxRelicSlot 2025/1/27
 - v1.0.2 - 加入牌组及卡片修改功能。加入增益减益修改功能。更新指令集 2025/1/20
 - v1.0.1 - 加入卡池导入功能 2025/1/16
 - v1.0.0 - Initial Release. (Game version v1.1.15) 2025/1/16

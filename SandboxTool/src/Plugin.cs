@@ -12,7 +12,7 @@ namespace SandboxTool
     {
         public const string GUID = "starfi5h.plugin.SandboxTool";
         public const string NAME = "SandboxTool";
-        public const string VERSION = "1.0.2";
+        public const string VERSION = "1.0.3";
 
         public static ManualLogSource Log;
         private static Harmony harmony;
